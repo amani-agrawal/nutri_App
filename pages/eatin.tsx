@@ -65,7 +65,7 @@ export default function DishNutritionCalculator() {
       <div className="mt-6">
         {/* Dish Name */}
         <div className="mb-4">
-          <label className="block text-white text-lg mb-2">Dish Name:</label>
+          <label className="block">Dish Name:</label>
           <input
             type="text"
             value={dishName}
@@ -77,7 +77,7 @@ export default function DishNutritionCalculator() {
 
         {/* Quantity */}
         <div className="mb-4">
-          <label className="block text-white text-lg mb-2">Quantity (Servings):</label>
+          <label className="block">Quantity (Servings):</label>
           <input
             type="number"
             value={quantity}

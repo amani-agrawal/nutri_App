@@ -51,7 +51,7 @@ interface UserList {
         </div>
 
         <button type="submit" className="login-button" onClick={() => router.push("/home")}>Login</button>
-        <p>---- OR ----</p>
+        <p className="text-black">---- OR ----</p>
         <button type="button" className="register-button" onClick={() => router.push("/register")}>
           Register
         </button>
