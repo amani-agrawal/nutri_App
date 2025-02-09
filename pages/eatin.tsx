@@ -1,112 +1,124 @@
 "use client";
 import { useState } from "react";
-import './profile.css';
-import dishData from "./dishData";
-import Fuse from "fuse.js";
 
-export default function DishNutritionCalculator() {
-  // State to hold input values
-  const [dishName, setDishName] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(1); // Default quantity (1 serving)
+// Make sure the API key is correctly set up
+const apiKey = process.env.REACT_APP_API_KEY;
+console.log(apiKey);
 
-  // State to hold the calculated results
-  const [totalCalories, setTotalCalories] = useState<number>(0);
-  const [totalCarbs, setTotalCarbs] = useState<number>(0);
-  const [totalProtein, setTotalProtein] = useState<number>(0);
-  const [totalFats, setTotalFats] = useState<number>(0);
+const baseURL = "https://api.aimlapi.com/v1";
+const systemPrompt = "You are a nutrition expert. Provide the carbs, protein, fats, and calories of the dish in one word for each category as a list, formatted like: carbs, protein, fats, calories.";
 
-  const fuse = new Fuse(Object.keys(dishData), {
-    includeScore: true,
-    threshold: 0.3, // Adjust this value for more or less lenient matching
-  });
+export default function HomePage() {
+  const [dish, setDish] = useState<string>("");
+  const [carbs, setCarbs] = useState<string>("");
+  const [protein, setProtein] = useState<string>("");
+  const [fats, setFats] = useState<string>("");
+  const [calories, setCalories] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleCalculate = () => {
-    // Check if the dish name exists in the predefined list
-    const results = fuse.search(dishName);
-    if (results.length > 0) {
-        const matchedDish = results[0].item; // Get the closest match
-    }
-
-    const dish = dishData[dishName];
-
-    if (dish) {
-      // Calculate total nutritional values based on servings/quantity
-      setTotalCalories(dish.calories * quantity);
-      setTotalCarbs(dish.carbs * quantity);
-      setTotalProtein(dish.protein * quantity);
-      setTotalFats(dish.fats * quantity);
-    } else {
-      // Handle invalid dish name
-      setTotalCalories(350 * quantity);
-      setTotalCarbs(200 * quantity);
-      setTotalProtein(15 * quantity);
-      setTotalFats(30 * quantity);
+  const fetchNutritionData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(baseURL + "/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "mistralai/Mistral-7B-Instruct-v0.2",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt,
+            },
+            {
+              role: "user",
+              content: `Provide the carbs, protein, fats, and calories for the dish named: ${dish}.`,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 256,
+        }),
+      });
+  
+      if (!res.ok) {
+        // Log the response status and text for more insight
+        const errorText = await res.text();
+        console.error("Error response status:", res.status);
+        console.error("Error response body:", errorText);
+        throw new Error("Failed to fetch response: " + errorText);
+      }
+  
+      const data = await res.json();
+      const aiResponse = data.choices[0].message.content;
+  
+      // Assuming the AI provides the nutrition data in a parseable format
+      const parsedResponse = aiResponse.split(",");
+      setCarbs(parsedResponse[0].trim());
+      setProtein(parsedResponse[1].trim());
+      setFats(parsedResponse[2].trim());
+      setCalories(parsedResponse[3].trim());
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      setCarbs("Error fetching carbs.");
+      setProtein("Error fetching protein.");
+      setFats("Error fetching fats.");
+      setCalories("Error fetching calories.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-green-400 p-6">
+      {/* Hero Section */}
       <div className="text-center text-white">
         <h1 className="text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-lg">
-          Dish Nutrition Calculator
+          Nutrition Calculator
         </h1>
         <p className="text-lg md:text-xl font-light">
-          Calculate the nutritional values of your favorite dish!
+          Find the nutritional breakdown (carbs, protein, fats, calories) of a dish.
         </p>
       </div>
 
+      {/* Input Section */}
       <div className="mt-6">
-        {/* Dish Name */}
         <div className="mb-4">
-          <label className="block">Dish Name:</label>
+          <label className="block text-white text-lg mb-2">Dish Name:</label>
           <input
             type="text"
-            value={dishName}
-            onChange={(e) => setDishName(e.target.value)}
-            className="px-4 py-2 w-60 rounded-lg text-black"
+            value={dish}
+            onChange={(e) => setDish(e.target.value)}
+            className="px-4 py-2 w-60 rounded-lg"
             placeholder="Enter dish name"
           />
         </div>
 
-        {/* Quantity */}
-        <div className="mb-4">
-          <label className="block">Quantity (Servings):</label>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            className="px-4 py-2 w-60 rounded-lg text-black"
-            placeholder="Enter quantity (servings)"
-          />
-        </div>
-
-        {/* Calculate Button */}
         <button
           className="px-6 py-3 text-lg bg-white text-blue-600 font-semibold shadow-lg rounded-xl"
-          onClick={handleCalculate}
+          onClick={fetchNutritionData}
+          disabled={loading}
         >
-          Calculate Nutrition
+          {loading ? "Fetching..." : "Get Nutrition"}
         </button>
       </div>
 
       {/* Displaying the Results */}
       <div className="mt-6 p-4 bg-white rounded-xl shadow-lg max-w-2xl">
-        <h2 className="text-2xl font-semibold text-blue-600 mb-4">Total Nutritional Intake</h2>
+        <h2 className="text-2xl font-semibold text-blue-600 mb-4">Nutritional Breakdown</h2>
         <div className="space-y-2">
           <p className="text-lg">
-            <strong>Dish Name:</strong> {dishName}
+            <strong>Carbs:</strong> {carbs}
           </p>
           <p className="text-lg">
-            <strong>Total Calories:</strong> {totalCalories} kcal
+            <strong>Protein:</strong> {protein}
           </p>
           <p className="text-lg">
-            <strong>Total Carbs:</strong> {totalCarbs} g
+            <strong>Fats:</strong> {fats}
           </p>
           <p className="text-lg">
-            <strong>Total Protein:</strong> {totalProtein} g
-          </p>
-          <p className="text-lg">
-            <strong>Total Fats:</strong> {totalFats} g
+            <strong>Calories:</strong> {calories}
           </p>
         </div>
       </div>
