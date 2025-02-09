@@ -46,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     // Load Google Maps API script with Places and Geometry libraries
     const mapsScript = document.createElement("script");
-    mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDohaBU6gmnMneAZsk3-gIgw0zZkFsatT4&libraries=places,geometry&callback=initMap`;
+    mapsScript.src = `NOT BE SEEN`;
     mapsScript.async = true;
     document.head.appendChild(mapsScript);
 
