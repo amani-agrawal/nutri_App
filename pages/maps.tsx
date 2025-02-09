@@ -10,33 +10,38 @@ declare global {
 }
 
 export default function Home() {
-  const [filter, setFilter] = useState("All");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const categories = ["All", "Low Calorie", "Low Fat", "High Protein", "Vegan", "Vegetarian", "Low Carb"];
-  
+  const categories = ["Low Calorie", "Low Fat", "High Protein", "Vegan", "Vegetarian", "Low Carb"];
+
   const [userLocation, setUserLocation] = useState<google.maps.LatLng | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [restaurantLocations, setRestaurantLocations] = useState<
     { [key: string]: google.maps.LatLng }
   >({});
 
-  var filteredRestaurants = restaurants;
-
-  if(filter=="Low Calorie")
-    filteredRestaurants = restaurants.filter(r=>r.low_cal==true)
-  else if(filter=="Low Fat")
-    filteredRestaurants = restaurants.filter(r=>r.low_fat==true)
-  else if(filter=="High Protein")
-    filteredRestaurants = restaurants.filter(r=>r.high_protein==true)
-  else if(filter=="Vegan")
-    filteredRestaurants = restaurants.filter(r=>r.vegan==true)
-  else if(filter=="Vegetarian")
-    filteredRestaurants = restaurants.filter(r=>r.vegetarian==true)
-  else if(filter=="Low Carb")
-    filteredRestaurants = restaurants.filter(r=>r.low_carb==true)
-  else
-  filteredRestaurants = restaurants
-  
+  // Filter restaurants based on selected categories
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    return selectedCategories.every((category) => {
+      // Check if the restaurant matches the selected categories
+      switch (category) {
+        case "Low Calorie":
+          return restaurant.low_cal;
+        case "Low Fat":
+          return restaurant.low_fat;
+        case "High Protein":
+          return restaurant.high_protein;
+        case "Vegan":
+          return restaurant.vegan;
+        case "Vegetarian":
+          return restaurant.vegetarian;
+        case "Low Carb":
+          return restaurant.low_carb;
+        default:
+          return true;
+      }
+    });
+  });
 
   useEffect(() => {
     // Load Google Maps API script with Places and Geometry libraries
@@ -149,47 +154,56 @@ export default function Home() {
     }
   };
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories((prevSelectedCategories) => {
+      if (prevSelectedCategories.includes(category)) {
+        return prevSelectedCategories.filter((item) => item !== category);
+      } else {
+        return [...prevSelectedCategories, category];
+      }
+    });
+  };
+
   return (
     <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "start", backgroundColor: "#000000" }}>
       <div id="map" style={{ width: "100%", height: "900px", marginBottom: "20px" }}></div>
       <div style={{ width: "80%", maxWidth: "1100px", backgroundColor: "black", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" }}>
         <h2 style={{ textAlign: "center", marginBottom: "20px", fontFamily: "Arial, sans-serif", fontWeight: "600", color: "white" }}>Restaurant List</h2>
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
+        
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
           {categories.map((category, index) => (
-            <button
-              key={index}
-              style={{
-                padding: "8px 15px", border: "none", backgroundColor: filter === category ? "#007bff" : "#555",
-                color: "white", borderRadius: "5px", cursor: "pointer", fontSize: "14px", transition: "background-color 0.3s ease"
-              }}
-              onClick={() => setFilter(category)}
-            >
+            <label key={index} style={{ color: "white", fontSize: "14px" }}>
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(category)}
+                onChange={() => handleCategoryChange(category)}
+                style={{ marginRight: "5px" }}
+              />
               {category}
-            </button>
-          
+            </label>
           ))}
         </div>
-              <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "center" }}>
-        {filteredRestaurants.map((restaurant, index) => {
-          const restaurantPosition = restaurantLocations[restaurant.name];
-          const distance = restaurantPosition ? getDistance(restaurantPosition) : 0;
-          return (
-            <div key={index} style={{ 
-              backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", 
-              width: "100%", maxWidth: "280px", padding: "15px", transition: "transform 0.3s ease" 
-            }}>
-              <button style={{
-                border: "none", backgroundColor: "#ffffff", color: "black", 
-                borderRadius: "5px", cursor: "pointer", fontSize: "14px", 
-                transition: "background-color 0.3s ease", alignContent: "start"
-              }} onClick={() => openGoogleMapsDirections(restaurantPosition)}>
-                Dish: {restaurant.item}<br></br> Restaurant: {restaurant.name}
-              </button>
-            </div>
-          );
-        })}
-      </div>
 
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "center" }}>
+          {filteredRestaurants.map((restaurant, index) => {
+            const restaurantPosition = restaurantLocations[restaurant.name];
+            const distance = restaurantPosition ? getDistance(restaurantPosition) : 0;
+            return (
+              <div key={index} style={{ 
+                backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", 
+                width: "100%", maxWidth: "280px", padding: "15px", transition: "transform 0.3s ease" 
+              }}>
+                <button style={{
+                  border: "none", backgroundColor: "#ffffff", color: "black", 
+                  borderRadius: "5px", cursor: "pointer", fontSize: "14px", 
+                  transition: "background-color 0.3s ease", alignContent: "start"
+                }} onClick={() => openGoogleMapsDirections(restaurantPosition)}>
+                  Dish: {restaurant.item}<br></br> Restaurant: {restaurant.name}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

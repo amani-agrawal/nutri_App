@@ -4,7 +4,6 @@ import './profile.css';
 import dishData from "./dishData";
 import Fuse from "fuse.js";
 
-
 export default function DishNutritionCalculator() {
   // State to hold input values
   const [dishName, setDishName] = useState<string>("");
