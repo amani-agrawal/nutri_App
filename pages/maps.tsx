@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import restaurants from './restrauntsData';
 
 declare global {
   interface Window {
@@ -9,31 +10,33 @@ declare global {
 }
 
 export default function Home() {
-  const [restaurants, setRestaurants] = useState([
-    {
-      name: "Joe's Pizza",
-      address: "7 Carmine St, New York, NY 10014",
-      dishes: ["Cheese Pizza", "Pepperoni Pizza", "Veggie Pizza"],
-      info: "A classic slice of New York pizza!",
-    },
-    {
-      name: "The Spotted Pig",
-      address: "314 W 11th St, New York, NY 10014",
-      dishes: ["Chargrilled Burger", "Polenta Fries", "Pork Belly"],
-      info: "Gastropub with a legendary burger!",
-    },
-    {
-      name: "Momofuku Noodle Bar",
-      address: "171 1st Ave, New York, NY 10003",
-      dishes: ["Ramen", "Pork Buns", "Kimchi Stew"],
-      info: "Innovative Asian cuisine in the heart of the city!",
-    },
-  ]);
+  const [filter, setFilter] = useState("All");
+
+  const categories = ["All", "Low Calorie", "Low Fat", "High Protein", "Vegan", "Vegetarian", "Low Carb"];
+  
   const [userLocation, setUserLocation] = useState<google.maps.LatLng | null>(null);
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [restaurantLocations, setRestaurantLocations] = useState<
     { [key: string]: google.maps.LatLng }
   >({});
+
+  var filteredRestaurants = restaurants;
+
+  if(filter=="Low Calorie")
+    filteredRestaurants = restaurants.filter(r=>r.low_cal==true)
+  else if(filter=="Low Fat")
+    filteredRestaurants = restaurants.filter(r=>r.low_fat==true)
+  else if(filter=="High Protein")
+    filteredRestaurants = restaurants.filter(r=>r.high_protein==true)
+  else if(filter=="Vegan")
+    filteredRestaurants = restaurants.filter(r=>r.vegan==true)
+  else if(filter=="Vegetarian")
+    filteredRestaurants = restaurants.filter(r=>r.vegetarian==true)
+  else if(filter=="Low Carb")
+    filteredRestaurants = restaurants.filter(r=>r.low_carb==true)
+  else
+  filteredRestaurants = restaurants
+  
 
   useEffect(() => {
     // Load Google Maps API script with Places and Geometry libraries
@@ -86,7 +89,7 @@ export default function Home() {
               });
 
               const infoWindow = new google.maps.InfoWindow({
-                content: `<h1>${restaurant.name}</h1><p>${restaurant.info}</p>`,
+                content: `<h1 style="color: black;">${restaurant.name}</h1>`,
               });
 
               marker.addListener("click", () => {
@@ -147,42 +150,46 @@ export default function Home() {
   };
 
   return (
-    <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", backgroundColor: "#000000" }}>
+    <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "start", backgroundColor: "#000000" }}>
       <div id="map" style={{ width: "100%", height: "900px", marginBottom: "20px" }}></div>
-
-      <div style={{ width: "80%", maxWidth: "900px", backgroundColor: "black", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px", fontFamily: "Arial, sans-serif", fontWeight: "600" }}>Restaurant List</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "space-between" ,height:"700px"}}>
-          {restaurants.map((restaurant, index) => {
-            const restaurantPosition = restaurantLocations[restaurant.name];
-            const distance = restaurantPosition ? getDistance(restaurantPosition) : 0;
-            return (
-              <div key={index} style={{ backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", width: "100%", maxWidth: "280px", padding: "15px", transition: "transform 0.3s ease" }}>
-                <h3 style={{ fontSize: "18px", color: "#333" }}>{restaurant.name}</h3>
-                <p style={{ fontSize: "14px", color: "#777", marginBottom: "10px" }}>{restaurant.info}</p>
-                <p className="text-black"><strong>Menu:</strong></p>
-                <ul style={{ listStyleType: "none", paddingLeft: "0", marginBottom: "10px" }}>
-                  {restaurant.dishes.map((dish, dishIndex) => (
-                    <li key={dishIndex} style={{ fontSize: "14px", color: "#555" }}>{dish}</li>
-                  ))}
-                </ul>
-                <div>
-                  {userLocation && restaurantPosition && (
-                    <p className="text-black">
-                      Distance: {distance ? `${(distance / 1000).toFixed(2)} km` : "Calculating..."}
-                    </p>
-                  )}
-                  <button style={{
-                    padding: "8px 15px", border: "none", backgroundColor: "#007bff", color: "white", borderRadius: "5px", cursor: "pointer",
-                    fontSize: "14px", width: "100%", transition: "background-color 0.3s ease"
-                  }} onClick={() => openGoogleMapsDirections(restaurantPosition)}>
-                    View on Google Maps
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+      <div style={{ width: "80%", maxWidth: "1100px", backgroundColor: "black", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "20px", fontFamily: "Arial, sans-serif", fontWeight: "600", color: "white" }}>Restaurant List</h2>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
+          {categories.map((category, index) => (
+            <button
+              key={index}
+              style={{
+                padding: "8px 15px", border: "none", backgroundColor: filter === category ? "#007bff" : "#555",
+                color: "white", borderRadius: "5px", cursor: "pointer", fontSize: "14px", transition: "background-color 0.3s ease"
+              }}
+              onClick={() => setFilter(category)}
+            >
+              {category}
+            </button>
+          
+          ))}
         </div>
+              <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", alignItems: "center" }}>
+        {filteredRestaurants.map((restaurant, index) => {
+          const restaurantPosition = restaurantLocations[restaurant.name];
+          const distance = restaurantPosition ? getDistance(restaurantPosition) : 0;
+          return (
+            <div key={index} style={{ 
+              backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", 
+              width: "100%", maxWidth: "280px", padding: "15px", transition: "transform 0.3s ease" 
+            }}>
+              <button style={{
+                border: "none", backgroundColor: "#ffffff", color: "black", 
+                borderRadius: "5px", cursor: "pointer", fontSize: "14px", 
+                transition: "background-color 0.3s ease", alignContent: "start"
+              }} onClick={() => openGoogleMapsDirections(restaurantPosition)}>
+                Dish: {restaurant.item}<br></br> Restaurant: {restaurant.name}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
       </div>
     </div>
   );

@@ -41,13 +41,13 @@ interface UserList {
         <h2 style = {{color: "black"}}>Login</h2>
 
         <div className="input-group">
-          <label htmlFor="email" style = {{color: "black"}}>Email</label>
-          <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+          <label htmlFor="email" style = {{color: "black"}}>Username</label>
+          <input className="text-black" type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
         </div>
 
         <div className="input-group">
           <label htmlFor="password" style = {{color: "black"}}>Password</label>
-          <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
+          <input className="text-black" type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
         </div>
 
         <button type="submit" className="login-button" onClick={() => router.push("/home")}>Login</button>

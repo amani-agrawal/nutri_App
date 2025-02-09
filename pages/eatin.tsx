@@ -1,25 +1,9 @@
 "use client";
 import { useState } from "react";
 import './profile.css';
-// Predefined list of dishes and their nutritional values per serving
-const dishData = {
-  "Spaghetti Bolognese": { calories: 350, carbs: 45, protein: 20, fats: 15 },
-  "Fettuccine Alfredo": { calories: 600, carbs: 50, protein: 18, fats: 30 },
-  "Lasagna": { calories: 400, carbs: 35, protein: 22, fats: 25 },
-  "Penne Arrabbiata": { calories: 300, carbs: 55, protein: 12, fats: 8 },
-  "Mac and Cheese": { calories: 500, carbs: 55, protein: 15, fats: 25 },
-  "Ravioli": { calories: 450, carbs: 50, protein: 20, fats: 20 },
-  "Chicken Curry": { calories: 500, carbs: 30, protein: 40, fats: 25 },
-  "Vegetable Stir Fry": { calories: 250, carbs: 40, protein: 10, fats: 8 },
-  "Grilled Salmon": { calories: 400, carbs: 0, protein: 40, fats: 22 },
-  "Beef Tacos": { calories: 400, carbs: 30, protein: 25, fats: 20 },
-  "Chicken Salad": { calories: 300, carbs: 10, protein: 25, fats: 18 },
-  "Hamburger": { calories: 500, carbs: 40, protein: 30, fats: 25 },
-  "Veggie Burger": { calories: 350, carbs: 45, protein: 20, fats: 15 },
-  "Sushi": { calories: 300, carbs: 50, protein: 10, fats: 5 },
-  "Peking Duck": { calories: 600, carbs: 20, protein: 40, fats: 35 },
-  "Fish and Chips": { calories: 700, carbs: 60, protein: 25, fats: 40 },
-};
+import dishData from "./dishData";
+import Fuse from "fuse.js";
+
 
 export default function DishNutritionCalculator() {
   // State to hold input values
@@ -32,8 +16,18 @@ export default function DishNutritionCalculator() {
   const [totalProtein, setTotalProtein] = useState<number>(0);
   const [totalFats, setTotalFats] = useState<number>(0);
 
+  const fuse = new Fuse(Object.keys(dishData), {
+    includeScore: true,
+    threshold: 0.3, // Adjust this value for more or less lenient matching
+  });
+
   const handleCalculate = () => {
     // Check if the dish name exists in the predefined list
+    const results = fuse.search(dishName);
+    if (results.length > 0) {
+        const matchedDish = results[0].item; // Get the closest match
+    }
+
     const dish = dishData[dishName];
 
     if (dish) {
